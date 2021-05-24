@@ -4,7 +4,7 @@ pragma solidity ^0.8.0;
 import "./NFTokenMetadata.sol";
 import "./Ownable.sol";
 
-contract newNFT is NFTokenMetadata, Ownable {
+contract Custom721 is NFTokenMetadata, Ownable {
     mapping(uint256 => uint256) public points;
 
     mapping(address => bool) public admin;
@@ -14,12 +14,17 @@ contract newNFT is NFTokenMetadata, Ownable {
     uint256 public maxUsage;
 
     uint256 public maxNFT;
+    
+    uint256 public available;
+    
+    string public baseUrl;
 
     constructor(
         uint256 _maxUsage,
         uint256 _maxNFT,
         string memory _nftName,
-        string memory _nftSymbol
+        string memory _nftSymbol,
+        string memory _url
     ) {
         require(_maxNFT > 0 && _maxUsage > 0);
         nftName = _nftName;
@@ -27,9 +32,11 @@ contract newNFT is NFTokenMetadata, Ownable {
         admin[msg.sender] = true;
         maxNFT = _maxNFT;
         maxUsage = _maxUsage;
+        available = _maxNFT;
+        baseUrl = _url;
     }
 
-    function addOwner(address _address) public onlyAdmin {
+    function addAdmin(address _address) public onlyAdmin {
         admin[_address] = true;
     }
 
@@ -37,14 +44,16 @@ contract newNFT is NFTokenMetadata, Ownable {
         maxUsage = _value;
     }
 
-    function mint(address _to, string calldata _uri) external onlyOwner {
+    function mint(address _to) external onlyAdmin {
         require(_tokenIds < maxUsage, "Max NFT Minted");
 
         _tokenIds += 1;
+        
+        available -= 1;
 
         super._mint(_to, _tokenIds);
 
-        super._setTokenUri(_tokenIds, _uri);
+        super._setTokenUri(_tokenIds, baseUrl);
     }
 
     function increment(uint256 _id) public onlyAdmin returns (uint256) {
