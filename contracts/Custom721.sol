@@ -5,7 +5,7 @@ import "./NFTokenMetadata.sol";
 import "./Ownable.sol";
 
 contract Custom721 is NFTokenMetadata, Ownable {
-    mapping(uint256 => uint256) public points;
+    mapping(uint256 => uint256) public usage;
 
     mapping(address => bool) public admin;
 
@@ -43,9 +43,16 @@ contract Custom721 is NFTokenMetadata, Ownable {
     function setMaxUsage(uint256 _value) public onlyAdmin {
         maxUsage = _value;
     }
-
+    
+    function setMaxNFT(uint256 _value) public onlyAdmin {
+        require(_value > 0, "Not a valid _value");
+        
+        maxNFT += _value;
+        available += _value;
+    }
+    
     function mint(address _to) external onlyAdmin {
-        require(_tokenIds < maxUsage, "Max NFT Minted");
+        require(_tokenIds < maxNFT, "Max NFT Minted");
 
         _tokenIds += 1;
         
@@ -57,12 +64,17 @@ contract Custom721 is NFTokenMetadata, Ownable {
     }
 
     function increment(uint256 _id) public onlyAdmin returns (uint256) {
-        require(points[_id] < maxUsage, "Card Usage Over");
-        return points[_id] += 1;
+        require(usage[_id] < maxUsage, "Card Usage Over");
+        return usage[_id] += 1;
+    }
+    
+    function decrement(uint256 _id) public onlyAdmin returns (uint256) {
+        require(usage[_id] > 0, "Already at Start");
+        return usage[_id] -= 1;
     }
 
     function count(uint256 _id) public view returns (uint256) {
-        return points[_id];
+        return usage[_id];
     }
 
     // Modifier to check that the caller is the owner of
